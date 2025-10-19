@@ -1,13 +1,22 @@
 from django.shortcuts import render
-from rest_framework import generics
-from .models import Lecturer, Course
-from .serializers import LecturerSerializer, CourseSerializer
+from rest_framework import generics, viewsets, permissions
+from .models import Lecturer, Course, Student
+from .serializers import LecturerSerializer, CourseSerializer, StudentSerializer
 
-class LecturerCreateAPIView(generics.CreateAPIView):
+# block students and lecturers (only admin)
+class LecturerViewSet(viewsets.ModelViewSet):
     queryset = Lecturer.objects.all()
     serializer_class = LecturerSerializer
 
-class CourseCreateAPIView(generics.CreateAPIView):
+# block students from this view
+class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+
+# block students and lecturers
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+
 # Create your views here.
