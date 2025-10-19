@@ -1,4 +1,55 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.contrib.auth.base_user import BaseUserManager
+
+class CustomUser(AbstractUser):
+    username = models.CharField(max_length=30, unique=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    profile_photo = models.ImageField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    phone_number = models.CharField(max_length=11, blank=True, null=True)
+    REQUIRED_FIELDS = ['email']
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    ROLE_CHOICES = (
+        ("Admin", "Admin"),
+        ("Lecturer", "Lecturer"),
+        ("Student", "Student"),
+        )
+    role = models.CharField(choices=ROLE_CHOICES, max_length=20)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.role})"
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, username, password, profile_photo=None, phone_number=None):
+        if not email:
+            raise ValueError('Users must have an email address')
+        email = self.normalize_email(email)
+        user = self.model(email=email, username=username, profile_photo=profile_photo, phone_number=phone_number)
+        user.set_password(password)
+        user.save()
+        return user
+    def create_superuser(self, email, username, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        return self.create_user(email, username, password, **extra_fields)
+
+@receiver(post_save, sender=CustomUser)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+    else:
+        instance.userprofile.save()
+
 class Lecturer(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
@@ -19,4 +70,6 @@ class Student(models.Model):
     department = models.CharField(max_length=30)
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
 # Create your models here.
