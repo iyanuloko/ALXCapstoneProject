@@ -5,24 +5,18 @@ from django.db.models.signals import post_save
 from django.contrib.auth.base_user import BaseUserManager
 
 class CustomUser(AbstractUser):
+    ROLE_CHOICES = (
+        ("Admin", "Admin"),
+        ("Lecturer", "Lecturer"),
+        ("Student", "Student"),
+    )
+    role = models.CharField(choices=ROLE_CHOICES, max_length=20)
     username = models.CharField(max_length=30, unique=True)
     date_of_birth = models.DateField(blank=True, null=True)
     profile_photo = models.ImageField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     phone_number = models.CharField(max_length=11, blank=True, null=True)
     REQUIRED_FIELDS = ['email']
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    ROLE_CHOICES = (
-        ("Admin", "Admin"),
-        ("Lecturer", "Lecturer"),
-        ("Student", "Student"),
-        )
-    role = models.CharField(choices=ROLE_CHOICES, max_length=20)
-
-    def __str__(self):
-        return f"{self.user.username} ({self.role})"
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password, profile_photo=None, phone_number=None):
@@ -43,14 +37,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(email, username, password, **extra_fields)
 
-@receiver(post_save, sender=CustomUser)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-    else:
-        instance.userprofile.save()
-
 class Lecturer(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     email = models.EmailField()
@@ -65,11 +53,33 @@ class Course(models.Model):
         return f'{self.title}'
 
 class Student(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
+    email = models.EmailField()
     department = models.CharField(max_length=30)
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
+class Timetable(models.Model):
+    DAYS_CHOICES = (
+        ("Monday", "Monday"),
+        ("Tuesday", "Tuesday"),
+        ("Wednesday", "Wednesday"),
+        ("Thursday", "Thursday"),
+        ("Friday", "Friday"),
+    )
+    days = models.CharField(choices=DAYS_CHOICES, max_length=20)
+    title = models.ForeignKey(Course, on_delete=models.CASCADE)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    lecturer = models.ForeignKey(Lecturer, on_delete=models.CASCADE)
+    location = models.CharField(max_length=30)
 
-# Create your models here.
+@receiver(post_save, sender=CustomUser)
+def create_related_profile(sender, instance, created, **kwargs):
+    if created:
+        if instance.role == "Lecturer":
+            Lecturer.objects.create(user=instance)
+        elif instance.role == "Student":
+            Student.objects.create(user=instance)

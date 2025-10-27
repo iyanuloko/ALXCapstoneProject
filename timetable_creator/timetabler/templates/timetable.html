@@ -1,0 +1,36 @@
+<!-- timetable.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Timetable View{% endblock %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Day / Time</th>
+            {% for time in time_slots %}
+                <th>{{ time }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for day, slots in timetable_dict.items %}
+        <tr>
+            <td>
+                {% if day == 'Mon' %}Monday{% elif day == 'Tue' %}Tuesday{% elif day == 'Wed' %}Wednesday{% elif day == 'Thu' %}Thursday{% elif day == 'Fri' %}Friday{% endif %}
+            </td>
+            {% for time, entry in slots.items %}
+                <td>
+                    {% if entry %}
+                        <strong>{{ entry.title.name }}</strong><br>
+                        {{ entry.lecturer.name }}<br>
+                        <small>{{ entry.location }}</small>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
