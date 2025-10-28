@@ -16,13 +16,13 @@
         {% for day, slots in timetable_dict.items %}
         <tr>
             <td>
-                {% if day == 'Mon' %}Monday{% elif day == 'Tue' %}Tuesday{% elif day == 'Wed' %}Wednesday{% elif day == 'Thu' %}Thursday{% elif day == 'Fri' %}Friday{% endif %}
+                {% if day == 'Monday' %}Monday{% elif day == 'Tuesday' %}Tuesday{% elif day == 'Wednesday' %}Wednesday{% elif day == 'Thursday' %}Thursday{% elif day == 'Friday' %}Friday{% endif %}
             </td>
             {% for time, entry in slots.items %}
                 <td>
                     {% if entry %}
-                        <strong>{{ entry.title.name }}</strong><br>
-                        {{ entry.lecturer.name }}<br>
+                        <strong>{{ entry.title }}</strong><br>
+                        {{ entry.lecturer.firstname }}<br>
                         <small>{{ entry.location }}</small>
                     {% else %}
                         -

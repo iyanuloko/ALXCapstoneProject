@@ -43,18 +43,18 @@ class TimetableViewSet(viewsets.ModelViewSet):
         return [IsAdmin()]
 
 def timetable_view(request):
-    timetable = Timetable.objects.select_related('title', 'lecturer').order_by('day', 'start_time')
+    timetable = Timetable.objects.select_related('title', 'lecturer').order_by('days', 'start_time')
     # Extract all distinct time slots (e.g., "08:00 - 10:00")
     time_slots = sorted({
         f"{t.start_time.strftime('%H:%M')} - {t.end_time.strftime('%H:%M')}"
         for t in timetable
     })
     # Group entries by day
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     timetable_dict = {day: {slot: None for slot in time_slots} for day in days}
     for t in timetable:
         time_label = f"{t.start_time.strftime('%H:%M')} - {t.end_time.strftime('%H:%M')}"
-        timetable_dict[t.day][time_label] = t
+        timetable_dict[t.days][time_label] = t
     return render(request, 'timetable.html', {
         'timetable_dict': timetable_dict,
         'time_slots': time_slots,

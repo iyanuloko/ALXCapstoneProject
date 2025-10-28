@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import LecturerViewSet, CourseViewSet, StudentViewSet, TimetableViewSet
+from .views import LecturerViewSet, CourseViewSet, StudentViewSet, TimetableViewSet, timetable_view
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth.views import LoginView, LogoutView
 
@@ -13,4 +13,5 @@ urlpatterns = [
     path('', LoginView.as_view(template_name = "login.html"), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('timetabler/', include(router.urls)),
+    path('timetableview', timetable_view, name='timetableview'),
 ]
