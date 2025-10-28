@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from .models import Lecturer, Course, Student, Timetable
 from .serializers import LecturerSerializer, CourseSerializer, StudentSerializer, TimetableSerializer
-
+from django.contrib.auth.decorators import login_required
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.role == 'Admin'
@@ -42,6 +42,7 @@ class TimetableViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return [IsAdmin()]
 
+@login_required(login_url='login')
 def timetable_view(request):
     timetable = Timetable.objects.select_related('title', 'lecturer').order_by('days', 'start_time')
     # Extract all distinct time slots (e.g., "08:00 - 10:00")
